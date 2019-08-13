@@ -1,0 +1,262 @@
+
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE, comment = NA)
+```
+
+
+
+1) Copy and paste all content below instructions into empty Rmarkdown document (set to html output)
+2) Ensure the downloadable prerequisite "fulldata.csv" is in the same folder as the Rmarkdown document from step 1 (Click the download prerequisite button, located just below the button you used to generate this html). This csv contains your original data paired with shapefile geometry.
+3) Ensure all listed packages are installed
+4) Ensure the working directory is set so that filepaths to the "fulldata.csv" work. filepaths to the V drive are also used to read shapefiles.
+
+ 
+
+
+```{r}
+
+cat(" "," ", sep = "\n")
+
+cat("```{r setup, include = FALSE}")
+```
+
+
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE, comment = NA)
+
+
+```{r}
+cat("```","\n")
+
+cat(" "," ", sep = "\n")
+
+cat(" "," ", sep = "\n")
+
+```
+
+  
+
+```{r}
+cat("```{r}")
+```
+
+library(RColorBrewer)
+
+library(plotly)
+
+library(shiny)
+
+library(colourpicker)
+
+library(sf)
+
+library(readr)
+
+library(leaflet)
+
+library(tmap)
+
+library(rmapshaper)
+
+library(tidyverse)
+
+library(tigris)
+
+library(grid)
+
+  
+
+```{r}
+cat("```","\n")
+
+cat(" "," ", sep = "\n")
+
+cat(" "," ", sep = "\n")
+
+```
+
+  
+
+```{r}
+
+cat("```{r}")
+
+cat(" "," ", sep = "\n")
+
+cat('input_data<-read_csv("fulldata.csv", col_types = cols(geocode = col_character()))')
+
+cat(" "," ", sep = "\n")
+
+cat('st50<-read_sf("V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/states/low_definition/states51_inset_ld.shp") %>%','\n','ms_simplify()')
+
+
+cat('cbsa50<-read_sf("V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/cbsas/low_definition/cbsas51_inset_ld.shp") %>%','\n','dplyr::select(name = NAME, geoid = GEOID, geometry = geometry) %>%','\n',' ms_simplify()')
+
+cat('co50<-read_sf("V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/counties/low_definition/counties51_inset_ld.shp") %>%','\n','
+dplyr::select(name = NAME, geoid = GEOID, geometry = geometry, st_code = STATEFP) %>%','\n','
+  ms_simplify()')
+
+cat('st48<-filter(st50, !grepl("Hawaii|Alaska",NAME))')
+
+cat(" "," ", sep = "\n")
+
+cat('borders50<-tm_shape(st50, projection = 2163)+tm_borders(lwd=0.2, col = "#d4d4d4")+tm_layout(frame = FALSE)')
+cat('borders48<-tm_shape(st48, projection = 2163)+tm_borders(lwd=0.2, col = "#d4d4d4")+tm_layout(frame = FALSE)')
+
+cat('co48<-filter(co50, !grepl("02|15",st_code))')
+cat('cbsa48<-filter(cbsa50, !grepl(", HI|, AK",name))')
+cat('st48<-filter(st50, !grepl("Alaska|Hawaii",NAME))')
+
+if(input$hiak == FALSE){
+  
+  (if(input$glevel == "county") {cat("shapies<-co48")} else {cat("shapies<-cbsa48")})
+  
+}else{
+  (if(input$glevel == "county") {cat("shapies<-co50")} else {cat("shapies<-cbsa50")})
+}
+
+cat('full_data<-inner_join(shapies,input_data, by = c("geoid" = "geocode"))')
+
+cat(" "," ", sep = "\n")
+
+cat("```")
+
+cat(" "," ", sep = "\n")
+
+
+
+```
+              
+                      
+                      
+```{r}
+
+cat("```{r}")
+
+cat(" "," ", sep = "\n")
+
+cat("the_map <- ")
+
+if (input$hiak == FALSE) {cat("borders48 +")} else {cat("borders50 +")} 
+cat("\n","tm_shape(full_data, projection = 2163) + ","\n")
+
+cat(" "," ", sep = "\n")
+
+if (input$bubbs == "low"){
+              cat('tm_bubbles("',input$var,'",')
+} else { cat('tm_polygons("',input$var,'",',sep = "")}
+if (input$bubbs == "low"){cat('size ="',input$var2,'",')}              
+```
+
+```{r}  
+if (input$scale == TRUE){
+              cat('breaks = "', as.numeric(unlist(strsplit(input$breaks))), '"",', sep = "")
+} else { cat('style ="', input$style,'",', sep = "")}
+ 
+```
+              palette = c(`r ' "'``r input$low``r '" '`,
+              `r ' "'``r input$high``r '" '`),
+              popup.vars=c(`r ' "'``r input$var``r '" '`, "name"),
+              popup.format = list(text.align = "left", format = "f", digits = 3)) +
+
+
+```{r}
+
+
+cat(" "," ", sep = "\n")
+
+cat('tm_layout(',
+          'legend.position = c("LEFT","BOTTOM"),',
+          'legend.outside = FALSE,',
+          'legend.text.size = 0.8,',
+          'legend.title.size = .0001,',
+          'title.position = c("LEFT","BOTTOM"),',
+          'title ="',input$legen,'",',
+          'title.size = 2.5,',
+          'fontfamily = "Interstate")',
+          sep = "\n")
+
+cat(" "," ", sep = "\n")
+
+cat("```")
+
+
+```
+
+
+
+```{r}
+
+cat(
+"<style type='text/css'>", "\n",
+" h3{", "\n",
+" font-size: 16px;", "\n",
+" font-family: 'Interstate';", "\n",
+"color:#C0C0C0;", "\n",
+" margin: 0.5em auto;", "\n",
+"}", "\n",
+"h4 {", "\n",
+"  font-size: 20px;", "\n",
+"  font-weight: bold;", "\n",
+"  font-family: 'Interstate';", "\n",
+"color:#000000;", "\n",
+"  margin: 0.4em auto;", "\n",
+"}", "\n",
+"h5 {", "\n",
+"  font-size: 2px;", "\n",
+"  font-family: 'Interstate';", "\n",
+"  margin: 0.01em auto;", "\n",
+"}", "\n",
+"h6 {", "\n",
+"  font-size: 19px;", "\n",
+"  font-family: 'Interstate';", "\n",
+"  color:#000000;", "\n",
+"  margin: 0.01em auto;", "\n",
+"}", "\n",
+"hr {" , "\n",
+"    margin: 0px;", "\n",
+"    border-width: 1.5px;", "\n",
+"    border-color: #C0C0C0;", "\n",
+"}", "\n",
+"</style>"
+)
+
+```
+
+```{r}
+
+
+cat("<h3> MAP 1 <h3>","\n",
+"<font size = '2'> <hr> </font>","\n",
+"<h4>", input$title, "<h4>","\n",
+"<h6>",input$subtitle, "<h6>","\n")
+
+
+
+cat("```{r}")
+
+```
+
+the_map
+
+```{r}
+cat("```")
+
+```
+
+
+```{r}
+cat(
+
+"<h5> <span style = 'color:#C0C0C0'> <font size = '2'>",input$notes," </font> </span>  <h5>", "\n",
+"<hr>", "\n",
+"<p><p/>", "\n",
+"<div style='position: fixed; right: 1;'> <span style = 'color:#878787'> <font size = '2'>",input$source," </font> </span> </div>", "<div style='position: fixed; right: 0;'>![](logo2.jpeg){width=450px} </div>"
+)
+
+
+```
+
