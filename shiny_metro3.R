@@ -53,6 +53,9 @@
 #https://evergreen.data.socrata.com/dataset/Cartographic-Boundary-Shapefiles-Metropolitan-And-/w6x3-m3ia
 # Read Data ---------------------------------------------------------------
 
+#"V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/states/low_definition/states51_inset_ld.shp"
+#"V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/counties/low_definition/counties51_inset_ld.shp"
+#"V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/cbsas/low_definition/cbsas51_inset_ld.shp"
 
 library('RColorBrewer')
 
@@ -84,14 +87,13 @@ options(shiny.sanitize.errors = TRUE)
 
 #setwd("C:/Users/DWhyman/Documents/shiny_backup")
 
-cbsa50<-read_sf("V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/cbsas/low_definition/cbsas51_inset_ld.shp") %>%
+cbsa50<-read_sf("shapefiles/cbsas51_inset_ld.shp") %>%
   dplyr::select(name = NAME, geoid = GEOID, geometry = geometry) %>%
   ms_simplify()
-co50<-read_sf("V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/counties/low_definition/counties51_inset_ld.shp") %>%
+co50<-read_sf("shapefiles/counties51_inset_ld.shp") %>%
 dplyr::select(name = NAME, geoid = GEOID, geometry = geometry, st_code = STATEFP) %>%
   ms_simplify()
-
-st50<-read_sf("V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/states/low_definition/states51_inset_ld.shp") %>%
+st50<-read_sf("shapefiles/states51_inset_ld.shp") %>%
    ms_simplify()
 
 # cbsa50<-read_csv("data/cbsa50.csv", col_types = cols(geoid = col_character()))
@@ -527,7 +529,7 @@ server <- function(input, output,session) {
     
     content = function(file){
       
-      tmap_save(usborders + tm_shape(input_data1(), projection = 2163) +
+      tmap_save(borders48 + tm_shape(input_data1(), projection = 2163) +
                   tmapper() + 
                   tm_layout(
                     legend.position = c("LEFT","BOTTOM"),
