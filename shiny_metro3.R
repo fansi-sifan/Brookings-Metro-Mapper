@@ -83,6 +83,8 @@ library("grid")
 
 library("tidycensus")
 
+library("DT")
+
 options(shiny.sanitize.errors = TRUE)
 
 #setwd("C:/Users/DWhyman/Documents/shiny_backup")
@@ -104,8 +106,8 @@ co48<-filter(co50, !grepl("02|15",st_code))
 cbsa48<-filter(cbsa50, !grepl(", HI|, AK",name))
 st48<-filter(st50, !grepl("Alaska|Hawaii",NAME))
 
-borders50<-tm_shape(st50, projection = 2163)+tm_borders(lwd=0.2, col = "#d4d4d4")+tm_layout(frame=FALSE)
-borders48<-tm_shape(st48, projection = 2163)+tm_borders(lwd=0.2, col = "#d4d4d4")+tm_layout(frame=FALSE)
+borders50<-tm_shape(st50, projection = 2163)+tm_borders(lwd = 0.5)+tm_layout(frame=FALSE)
+borders48<-tm_shape(st48, projection = 2163)+tm_borders(lwd = 0.5)+tm_layout(frame=FALSE)
 
 
 co_all<-read_csv("data/co_all.csv", col_types = cols(stco_code = col_character()))
@@ -116,9 +118,8 @@ list_all_cbsa<-mget(load("data/list_all_cbsa.rda"))$list_all_cbsa
 list_all_co<-mget(load("data/list_all_co.rda"))$list_all_co
 
 
+
 # Shiny R -----------------------------------------------------------------
-
-
 
 
 
@@ -126,6 +127,9 @@ ui <- fluidPage(
   
   titlePanel("Metro Mapper"),
   
+  tabsetPanel(type = "tabs",
+              
+  tabPanel("Mapper",
   
   sidebarLayout(
     
@@ -137,34 +141,69 @@ ui <- fluidPage(
       
       helpText("Contact: dwhyman@brookings.edu"),
       
+      h3("1. Choose Your Dataset!"),
       
-      checkboxInput("wharehouse0","Use Data Warehouse?", FALSE),
+      radioButtons("wharehouse0","Where is your dataset?", choices = c("Metro's data warehouse" = "TRUE", "I'll upload my own .csv file" = "FALSE"), selected = character(0)),
  
            
-      conditionalPanel("input.wharehouse0 == true",
-      selectInput("wharehouse","Choose data warehosue dataset", choices = c(names(list_all_co),names(list_all_cbsa)))
+      conditionalPanel("input.wharehouse0 == 'TRUE'",
+        
+                       selectizeInput("wharehouse","Choose data warehouse dataset", choices = c(names(list_all_co),names(list_all_cbsa)), selected = NULL)
       ),
       
+      conditionalPanel("input.wharehouse0 == 'FALSE'",
       
-      conditionalPanel("input.wharehouse0 == false",
-      fileInput('file1',"Choose CSV File",
-                
-                accept = c(".csv"))
+                       fileInput('file1',"Choose CSV File", accept = c(".csv"))
       ),
       
-      radioButtons("glevel","Geography Level of Data", choices = c("metro","county")
-      ),
+      radioButtons("glevel","The dataset you chose is on what geography level?", choices = c("metro","county"), selected = character(0)),
       
+      conditionalPanel(condition = "input.wharehouse0 == 'TRUE'",      
+      
+                       checkboxInput("custom","Filter dataset by jurisdiction", FALSE)
+      ),
 
+
+      
+      conditionalPanel(condition = "input.custom == true",
+                       
+          selectizeInput(
+            
+            "cbsa_choose", "Filter by metro Area:",
+            
+            choices = county_cbsa_st$cbsa_name, multiple = TRUE
+            
+          ),
+          
+          selectizeInput(
+            
+            "states", "Filter by state:",
+            
+            choices = county_cbsa_st$st_name, multiple = TRUE      
+          )
+        ),
+      
+      conditionalPanel(condition = "input.custom == true & input.glevel == 'county'",
+                       
+      selectizeInput(
+        
+        "co_choose", "Filter by county",
+        
+        choices = county_cbsa_st$co_name, multiple = TRUE
+        
+        )
+      ),
+      
+      conditionalPanel(condition = "input.glevel == 'metro' | input.glevel == 'county'", 
+                       
       actionButton("choice", "Show Data"),
-      
-
       
       tags$hr(),
       
+      h3("2. Choose a Column From Your Dataset!"),
       
       
-      selectInput("var", "Choose a variable to map",
+      selectInput("var", "Select variable to map",
                   
                   choices = NULL),
       
@@ -179,76 +218,92 @@ ui <- fluidPage(
       
       tags$hr(),
       
+      h3("3. Customize Your Map!"),
       
       
-      radioButtons("bubbs", "map resolution (decrease for faster load)", choices = c("high", "medium","low")),
+      checkboxInput("customize", "I'm Ready to customize!", FALSE),
       
-      
-      
-      checkboxInput("scale", "Custom scale breaks", FALSE),
-      
-      conditionalPanel(condition = "input.scale == true",
+      conditionalPanel(condition = "input.customize == true",
                        
-                       textInput("breaks","Enter scale breaks (separate by commas)", NULL)
+            radioButtons("bubbs", "Map resolution (Decrease for faster load)", choices = c("High" = "high", "Medium" = "medium","Low (bubbles)" = "low")),
+            
+            
+            
+            checkboxInput("scale", "Custom scale breaks", FALSE),
+            
+            conditionalPanel(condition = "input.scale == true",
+                             
+                             textInput("breaks","Enter scale breaks (separate by commas)", NULL)
+            ),
+            
+            conditionalPanel("input.scale == false",
+                             
+                             radioButtons("style", "Scaling", choices = c("Continuous" = "cont", "Categorical" = "pretty"))
+            ),
+            
+            
+
+            checkboxInput("hiak", "Don't leave out Hawaii & Alaska!", FALSE),
+            
+            
+            colourInput("low", "Choose a color for low value","#deebf7"),
+            
+            colourInput("high", "Choose a color for high value", "#08519c"),
+            
+            
+            plotOutput("histo",width = "75%", height = "200px")
+      
       ),
-      
-      conditionalPanel("input.scale == false",
-                       
-                       radioButtons("style", "Scaling", choices = c("Continuous" = "cont", "Categorical" = "pretty"))
-      ),
-      
-      
-      checkboxInput("filt", "1 Row is year X metro area", FALSE),
-      
-      checkboxInput("hiak", "Include Hawaii & Alaska", FALSE),
-      
-      conditionalPanel("input.filt == true",
-                       
-                       textInput("year","Year")
-      ),      
-      
-      colourInput("low", "Choose a color for low value","#deebf7"),
-      
-      colourInput("high", "Choose a color for high value", "#08519c"),
-      
-      
-      plotOutput("histo",width = "75%", height = "200px"),
-      
       
       tags$hr(),
       
+      h3("4. Download Map & Code!"),
       
-      downloadButton("plot", label = "Download the map"),
+      checkboxInput("export","I'm Ready to Download!", FALSE),
       
-      radioButtons("filetype", "File type:", choices = c("png", "pdf", "html")),      
-      
-      textInput("legen", label = "Legend title"), 
-      
-      downloadButton("report", label = "Generate pdf report"),
-      
-      textInput("title", label = "Report title"), 
-      
-      textInput("subtitle", label = "Report subtitle"), 
-      
-      textInput("source", label = "Report source"), 
-      
-      textInput("notes", label = "Report notes"),
-      
-      downloadButton("code", label = "Download the code"),
-      
-      downloadButton("basic", label = "Download code-running requirements")
+      conditionalPanel(condition = "input.export == true",
+                       
+        downloadButton("plot", label = "Download the map!"),
+        
+        radioButtons("filetype", "File type:", choices = c("png", "pdf", "html")),      
+        
+        textInput("legen", label = "Legend title"), 
+        
+        downloadButton("report", label = "Download map! (publication-ready!)"),
+        
+        textInput("title", label = "Report title"), 
+        
+        textInput("subtitle", label = "Report subtitle"), 
+        
+        textInput("source", label = "Report source"), 
+        
+        textInput("notes", label = "Report notes"),
+        
+        downloadButton("code", label = "Download the code!"),
+        
+        downloadButton("basic", label = "Download csv!")
+        
+        
+      )
+      )
     ),
     
     
     
     mainPanel(
       
-      tableOutput("contents"),
+      dataTableOutput("contents"),
       
       leafletOutput("map"))
     
     
-    
+  )
+  
+  
+  ),
+  
+  tabPanel("Instructions",
+           includeMarkdown("README.md"))
   )
   
 )
@@ -263,7 +318,7 @@ server <- function(input, output,session) {
   
   info <- eventReactive(input$choice,{
   
-    if (input$wharehouse0 == FALSE){
+    if (input$wharehouse0 == "FALSE"){
   
         req(input$file1)
     
@@ -288,8 +343,11 @@ server <- function(input, output,session) {
     
       if (grepl("cbsa",input$wharehouse) == TRUE){
       
-      cbsa_codes <- county_cbsa_st$cbsa_code
+            
       
+            (if(input$custom == FALSE) {cbsa_codes <- county_cbsa_st$cbsa_code} else {cbsa_codes <- (filter(county_cbsa_st, st_name %in% input$states | cbsa_name %in% input$cbsa_choose)$cbsa_code)})
+        
+        
       cbsa_columns <- unlist(list_all_cbsa[input$wharehouse], use.names = F)
       
       updateSelectInput(session,"var",'Choose a variable to map', choices = cbsa_columns[-c(1,2)])  
@@ -313,8 +371,10 @@ server <- function(input, output,session) {
       
       else { 
         
-        co_codes <- county_cbsa_st$stco_code
+      
+        (if(input$custom == FALSE) {co_codes <- county_cbsa_st$stco_code} else {co_codes <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$stco_code)})
         
+       
         co_columns <- unlist(list_all_co[input$wharehouse], use.names = F)
         
         updateSelectInput(session,"var",'Choose a variable to map', choices = co_columns[-c(1,2)])  
@@ -376,6 +436,7 @@ server <- function(input, output,session) {
   
   
   
+  
   lower48 <- reactive({
     (if(input$hiak == TRUE){borders50} else {borders48}) + tm_shape(input_data1(), projection = 2163) + tmapper() + tm_layout(
       legend.position = c("LEFT","BOTTOM"),
@@ -388,28 +449,29 @@ server <- function(input, output,session) {
   })
   
   
-  reactive({
-    
-    req(input$filt == TRUE)
-    
-    req(input$year)
-    
-    info2<-filter(info2(), year == input$year)   
-    
-  })
+
   
   
   
-  output$contents <- renderTable({
-    
-    
+
+  
+  output$contents <- DT::renderDataTable({
     
     display_data <- info()
     
-    
-    head(display_data, 4L)
-    
-    
+    DT::datatable(
+      
+      display_data,
+      
+      options = list(
+        
+        lengthMenu = list(c(3, 5, 10, -1), c("3","5", "15", "All")),
+        
+        pageLength = 5
+        
+      )
+      
+    )
     
   })
   
@@ -461,8 +523,11 @@ server <- function(input, output,session) {
                    size = input$var2, 
                    palette = c(input$low, input$high),
                    breaks = as.numeric(unlist(strsplit(input$breaks,","))),
-                   popup.vars=c(input$var, input$var2, "name"),
-                   popup.format = list(text.align = "left", format = "f", digits = 3)
+                   popup.vars=c("name", input$var2, input$var),
+                   popup.format = list(text.align = "left", format = "f", digits = 3),
+                   colorNA = NULL, 
+                   showNA = NULL, 
+                   ...
                    
         )
       } else {
@@ -471,10 +536,13 @@ server <- function(input, output,session) {
                    size = input$var2, 
                    palette = c(input$low, input$high),
                    style = input$style,
-                   popup.vars=c(input$var, input$var2, "name"),
-                   popup.format = list(text.align = "left", format = "f", digits = 3)
+                   popup.vars=c( "name", input$var2, input$var),
+                   popup.format = list(text.align = "left", format = "f", digits = 3),
+                   colorNA = NULL, 
+                   showNA = NULL, 
+                   ...
                    
-        )     
+                  )     
         
         
       }
@@ -492,8 +560,11 @@ server <- function(input, output,session) {
                     breaks = as.numeric(unlist(strsplit(input$breaks,","))),
                     popup.vars=c(input$var, "name"),
                     popup.format = list(text.align = "left", format = "f", digits = 3),
+                    colorNA = NULL, 
+                    showNA = NULL, 
+                    border.col = NULL,
                     ...
-        )
+                    )
       } else {
         
         tm_polygons(input$var, 
@@ -502,8 +573,11 @@ server <- function(input, output,session) {
                     style = input$style,
                     popup.vars=c(input$var, "name"),
                     popup.format = list(text.align = "left", format = "f", digits = 3),
+                    colorNA = NULL, 
+                    showNA = NULL, 
+                    border.col = NULL,
                     ...
-        )     
+                    )     
         
         
       }
@@ -530,8 +604,8 @@ server <- function(input, output,session) {
     content = function(file){
       
       tmap_save(borders48 + tm_shape(input_data1(), projection = 2163) +
-                  tmapper() + 
-                  tm_layout(
+                tmapper() + 
+                tm_layout(
                     legend.position = c("LEFT","BOTTOM"),
                     legend.outside = FALSE,
                     legend.title.size = .0001,
@@ -540,7 +614,6 @@ server <- function(input, output,session) {
                     title.size = 3,
                     legend.text.size = 1.5,
                     fontfamily = "serif"), 
-                
                 file, 
                 width = 16, 
                 height = 10.4)
@@ -594,12 +667,7 @@ server <- function(input, output,session) {
   output$basic<-downloadHandler(
     filename = "fulldata.csv",
     
-    content = function(file) {
-      
-      
-      write_csv(info2(),path = file)
-      
-    }
+    content = function(file) {write_csv(info2(),path = file)}
   ) 
   
   

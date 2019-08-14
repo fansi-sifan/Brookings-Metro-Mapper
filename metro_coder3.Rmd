@@ -103,8 +103,8 @@ cat('st48<-filter(st50, !grepl("Hawaii|Alaska",NAME))')
 
 cat(" "," ", sep = "\n")
 
-cat('borders50<-tm_shape(st50, projection = 2163)+tm_borders(lwd=0.2, col = "#d4d4d4")+tm_layout(frame = FALSE)')
-cat('borders48<-tm_shape(st48, projection = 2163)+tm_borders(lwd=0.2, col = "#d4d4d4")+tm_layout(frame = FALSE)')
+cat('borders50<-tm_shape(st50, projection = 2163)+tm_borders(lwd=0.6, col = "#2b2b2b")+tm_layout(frame = FALSE)')
+cat('borders48<-tm_shape(st48, projection = 2163)+tm_borders(lwd=0.6, col = "#2b2b2b")+tm_layout(frame = FALSE)')
 
 cat('co48<-filter(co50, !grepl("02|15",st_code))')
 cat('cbsa48<-filter(cbsa50, !grepl(", HI|, AK",name))')
@@ -140,15 +140,15 @@ cat(" "," ", sep = "\n")
 
 cat("the_map <- ")
 
-if (input$hiak == FALSE) {cat("borders48 +")} else {cat("borders50 +")} 
+(if(input$hiak == FALSE) {cat("borders48 +")} else {cat("borders50 +")})
 cat("\n","tm_shape(full_data, projection = 2163) + ","\n")
 
 cat(" "," ", sep = "\n")
 
 if (input$bubbs == "low"){
               cat('tm_bubbles("',input$var,'",')
-} else { cat('tm_polygons("',input$var,'",',sep = "")}
-if (input$bubbs == "low"){cat('size ="',input$var2,'",')}              
+} else { cat('tm_polygons("',input$var,'",','border.col = NULL,','\n',sep = "")}
+if (input$bubbs == "low"){cat('size ="',input$var2,'",','\n')}              
 ```
 
 ```{r}  
@@ -160,8 +160,9 @@ if (input$scale == TRUE){
               palette = c(`r ' "'``r input$low``r '" '`,
               `r ' "'``r input$high``r '" '`),
               popup.vars=c(`r ' "'``r input$var``r '" '`, "name"),
-              popup.format = list(text.align = "left", format = "f", digits = 3)) +
-
+              popup.format = list(text.align = "left", format = "f", digits = 3),
+              colorNA = NULL, 
+              showNA = NULL) + 
 
 ```{r}
 
@@ -169,14 +170,16 @@ if (input$scale == TRUE){
 cat(" "," ", sep = "\n")
 
 cat('tm_layout(',
-          'legend.position = c("LEFT","BOTTOM"),',
+          'scale = 3.5,',
+          'legend.position = c("RIGHT","BOTTOM"),',
           'legend.outside = FALSE,',
-          'legend.text.size = 0.8,',
+          'legend.text.size = 1,',
           'legend.title.size = .0001,',
-          'title.position = c("LEFT","BOTTOM"),',
+          'title.position = c("RIGHT","BOTTOM"),',
           'title ="',input$legen,'",',
-          'title.size = 2.5,',
-          'fontfamily = "Interstate")',
+          'title.size = 1,',
+          'fontfamily = "Interstate",',
+          'frame = FALSE)',
           sep = "\n")
 
 cat(" "," ", sep = "\n")
@@ -236,7 +239,7 @@ cat("<h3> MAP 1 <h3>","\n",
 
 
 
-cat("```{r}")
+cat("```{r, fig.height=30, fig.width= 50, strip.white=TRUE}")
 
 ```
 
@@ -254,7 +257,7 @@ cat(
 "<h5> <span style = 'color:#C0C0C0'> <font size = '2'>",input$notes," </font> </span>  <h5>", "\n",
 "<hr>", "\n",
 "<p><p/>", "\n",
-"<div style='position: fixed; right: 1;'> <span style = 'color:#878787'> <font size = '2'>",input$source," </font> </span> </div>", "<div style='position: fixed; right: 0;'>![](logo2.jpeg){width=450px} </div>"
+"<div style='position: fixed; right: 1;'> <span style = 'color:#878787'> <font size = '2'>",input$source," </font> </span> </div>", "<div style='position: fixed; right: 0;'>![](V:/Whyman_metro_datasets/metro_mapper_brookings/Brookings-Metro-Mapper/logo2.jpeg){width=450px} </div>"
 )
 
 
