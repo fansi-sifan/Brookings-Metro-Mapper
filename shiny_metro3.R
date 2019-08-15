@@ -77,12 +77,6 @@ library("rmapshaper")
 
 library("tidyverse")
 
-library("tigris")
-
-library("grid")
-
-library("tidycensus")
-
 library("DT")
 
 options(shiny.sanitize.errors = TRUE)
@@ -117,7 +111,8 @@ county_cbsa_st<-read_csv("data/county_cbsa_st.csv", col_types = cols(cbsa_code =
 list_all_cbsa<-mget(load("data/list_all_cbsa.rda"))$list_all_cbsa
 list_all_co<-mget(load("data/list_all_co.rda"))$list_all_co
 
-
+basic_cbsa<-names(county_cbsa_st %>% dplyr::select(contains("cbsa_")) %>% unique())
+basic_co<-names(county_cbsa_st %>% dplyr::select(contains("co_"),"cbsa_code","cbsa_name") %>% unique())
 
 # Shiny R -----------------------------------------------------------------
 
@@ -143,7 +138,7 @@ ui <- fluidPage(
       
       h3("1. Choose Your Dataset!"),
       
-      radioButtons("wharehouse0","Where is your dataset?", choices = c("Metro's data warehouse" = "TRUE", "I'll upload my own .csv file" = "FALSE"), selected = character(0)),
+      radioButtons("wharehouse0","Where is your dataset?", choices = c("Data warehouse" = "TRUE", "I'll upload my own .csv file" = "FALSE"), selected = character(0)),
  
            
       conditionalPanel("input.wharehouse0 == 'TRUE'",
@@ -227,7 +222,9 @@ ui <- fluidPage(
                        
             radioButtons("bubbs", "Map resolution (Decrease for faster load)", choices = c("High" = "high", "Medium" = "medium","Low (bubbles)" = "low")),
             
+            checkboxInput("bord","Draw jurisdiction border lines", FALSE),
             
+            checkboxInput("sbord","Draw state border lines", FALSE),
             
             checkboxInput("scale", "Custom scale breaks", FALSE),
             
@@ -278,6 +275,8 @@ ui <- fluidPage(
         textInput("source", label = "Report source"), 
         
         textInput("notes", label = "Report notes"),
+        
+        sliderInput("asp", label = "Publication map height", min = 20, max = 35, value = 30),
         
         downloadButton("code", label = "Download the code!"),
         
@@ -343,15 +342,14 @@ server <- function(input, output,session) {
     
       if (grepl("cbsa",input$wharehouse) == TRUE){
       
-            
       
             (if(input$custom == FALSE) {cbsa_codes <- county_cbsa_st$cbsa_code} else {cbsa_codes <- (filter(county_cbsa_st, st_name %in% input$states | cbsa_name %in% input$cbsa_choose)$cbsa_code)})
         
-        
       cbsa_columns <- unlist(list_all_cbsa[input$wharehouse], use.names = F)
       
-      updateSelectInput(session,"var",'Choose a variable to map', choices = cbsa_columns[-c(1,2)])  
-      updateSelectInput(session,"var2",'Choose a variable to map (bubble size)', choices = cbsa_columns[-c(1,2)])
+      
+      updateSelectInput(session,"var",'Choose a variable to map', choices = c(basic_cbsa[-c(1,2)],cbsa_columns[-c(1,2)]))  
+      updateSelectInput(session,"var2",'Choose a variable to map (bubble size)', choices = c(basic_cbsa[-c(1,2)],cbsa_columns[-c(1,2)]))
       #updateSelectInput(session,"glevel",'Geography Level of Data', choices = c("metro","county"), selected = "metro")  
       
       cbsa_all %>%
@@ -374,11 +372,10 @@ server <- function(input, output,session) {
       
         (if(input$custom == FALSE) {co_codes <- county_cbsa_st$stco_code} else {co_codes <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$stco_code)})
         
-       
         co_columns <- unlist(list_all_co[input$wharehouse], use.names = F)
         
-        updateSelectInput(session,"var",'Choose a variable to map', choices = co_columns[-c(1,2)])  
-        updateSelectInput(session,"var2",'Choose a variable to map (bubble size)', choices = co_columns[-c(1,2)])
+        updateSelectInput(session,"var",'Choose a variable to map', choices = c(basic_co[-c(1,2,7,8)],co_columns[-c(1,2)]))  
+        updateSelectInput(session,"var2",'Choose a variable to map (bubble size)', choices = c(basic_co[-c(1,2,7,8)],co_columns[-c(1,2)]))
         #updateSelectInput(session,"glevel",'Geography Level of Data', choices = c("metro","county"), selected = "county")  
         
         
@@ -390,7 +387,7 @@ server <- function(input, output,session) {
           
           unique() %>%          
           
-          #left_join(county_cbsa_st %>% dplyr::select(contains("co_"),"cbsa_code","cbsa_name") %>% unique(), by = "stco_code")%>%
+          left_join(county_cbsa_st %>% dplyr::select(contains("co_"),"cbsa_code","cbsa_name") %>% unique(), by = "stco_code")%>%
           
           mutate_if(is.numeric, ~ round(., 2)) %>%
         
@@ -436,9 +433,36 @@ server <- function(input, output,session) {
   
   
   
+  fborders <- reactive({
+    
+    req(input$var)
+    if(input$glevel == "county"){
+      
+      (if(input$custom == FALSE) {st_names <- county_cbsa_st$st_name} else {st_names <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$st_name)})
+      
+      
+    } else {
+      
+      (if(input$custom == FALSE) {st_names <- county_cbsa_st$st_name} else {st_names <- (filter(county_cbsa_st, st_name %in% input$states | cbsa_name %in% input$cbsa_choose)$st_name)})
+      
+      
+    }
+    
+    st_final<-(if(input$hiak == FALSE){st48}else{st50})
+    
+    tm_shape(filter(st_final, NAME %in% st_names), projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(frame = FALSE)
+    
+  })
   
-  lower48 <- reactive({
-    (if(input$hiak == TRUE){borders50} else {borders48}) + tm_shape(input_data1(), projection = 2163) + tmapper() + tm_layout(
+  
+  bmapper <-function(){
+    if (input$sbord == FALSE) {fborders} else {fborders()}
+    
+  }
+  
+  
+  the_map <- reactive({
+      bmapper() + tm_shape(input_data1(), projection = 2163) + tmapper() + tm_layout(
       legend.position = c("LEFT","BOTTOM"),
       legend.outside = FALSE,
       legend.title.size = .0001,
@@ -494,14 +518,17 @@ server <- function(input, output,session) {
     
     req(input$var)    
     
-    lower_48<-lower48()
+    the_map<-the_map()
     
     
-    tmap_leaflet(lower_48)
+    tmap_leaflet(the_map)
     
     
     
   })
+  
+  
+
   
   
   tmapper <- function(...){
@@ -562,7 +589,7 @@ server <- function(input, output,session) {
                     popup.format = list(text.align = "left", format = "f", digits = 3),
                     colorNA = NULL, 
                     showNA = NULL, 
-                    border.col = NULL,
+                    border.col = if(input$bord == FALSE){NULL} else {"#636363"},
                     ...
                     )
       } else {
@@ -575,7 +602,7 @@ server <- function(input, output,session) {
                     popup.format = list(text.align = "left", format = "f", digits = 3),
                     colorNA = NULL, 
                     showNA = NULL, 
-                    border.col = NULL,
+                    border.col = if(input$bord == FALSE){NULL} else {"#636363"},
                     ...
                     )     
         

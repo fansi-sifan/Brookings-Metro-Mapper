@@ -63,9 +63,6 @@ library(rmapshaper)
 
 library(tidyverse)
 
-library(tigris)
-
-library(grid)
 
   
 
@@ -147,7 +144,12 @@ cat(" "," ", sep = "\n")
 
 if (input$bubbs == "low"){
               cat('tm_bubbles("',input$var,'",')
-} else { cat('tm_polygons("',input$var,'",','border.col = NULL,','\n',sep = "")}
+} else { cat('tm_polygons("',input$var,'",')}
+
+if (input$bubbs != "low"){
+  if(input$bord == TRUE){cat('border.col = "#636363",')}else{cat('border.col = NULL,')}
+}
+
 if (input$bubbs == "low"){cat('size ="',input$var2,'",','\n')}              
 ```
 

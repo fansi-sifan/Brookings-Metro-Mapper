@@ -34,9 +34,7 @@
 ### INSTRUCTIONS
 
 
-The first three "Step 1" subparts are mandatory in order to proceed (Steps 1A, 1B, 1C). Mark those three subparts **in order** from top to bottom and then press "Show Data" to display map. 
-
-
+The first three "Step 1" subparts are mandatory in order to proceed (Steps 1A, 1B, 1C). Mark those three subparts **in order** from top to bottom and then press "Show Data" to display map.
 ### Avoid Common Error Triggers:
 
 * **If your dataset contains *county-level* data, you MUST mark *"county"* for (Step 1C) "The dataset you chose is on what geography level?" (Likewise, mark "metro" for metro-level datasets)**
@@ -44,7 +42,7 @@ The first three "Step 1" subparts are mandatory in order to proceed (Steps 1A, 1
 
 * Your uploaded dataset MUST meet the criteria (below)
 
-* The variable in your dataset to which the dropdown menu in **step 2** defaulted is unsuitable to be mapped. Usually this is because it contains FIPS codes or place names. Select a different variable from the step 2 dropdown menu.
+* The variable in your dataset selected in the dropdown menu in **step 2** is unsuitable to be mapped. Usually this is because it contains FIPS codes or place names. Select a different variable from the step 2 dropdown menu.
 
  * Pressing "Show data" when the (Step 1D) "Filter Dataset by Jurisdiction" checkbox is selected AND all filter dropdowns (Filter by metro area / state / county) are left blank.
  
@@ -124,3 +122,5 @@ CBSA&nbsp; &nbsp;&nbsp;| file name | descriptions
 * When resolution is set to low for a non-warehouse dataset, hover tooltips become innacurate (click tooltips remain accurate)
 
 * **'Clicking a Zillion Times' Advisory:** Clicking on an input a zillion times is not advised. The server redraws the map with each user's click on an input, even if that click is made obselete by a future click. (E.g., if a user toggles an option from "off" to "on" and then a second later from "on" to "off", the map will be redrawn once reflecting "on" and again to reflect "off"). On some machines, loading may take a few seconds, and a chain of many clicks may create a backlog
+
+
