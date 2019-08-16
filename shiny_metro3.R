@@ -531,7 +531,7 @@ server <- function(input, output,session) {
     the_map<-the_map()
     
     
-    leaflet::tmap_leaflet(the_map)
+    tmap_leaflet(the_map)
     
     
     
