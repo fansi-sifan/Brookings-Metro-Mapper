@@ -54,24 +54,32 @@ The first three "Step 1" subparts are mandatory in order to proceed (Steps 1A, 1
 
 ### Criteria for Uploaded Datasets
 
-1) **FIPS code column:** dataset must contain a column of county OR cbsa 5-digit FIPS codes *named "cbsa_code","geoid", or "stco_code"*
-2) **Tidy:** the unit of observation must be cbsa OR county *(1 row = 1 county OR 1 cbsa)*
-3) **Single geography level:** dataset must be entirely county-level or entirely cbsa-level, not a mixture (NO datasets where some rows as CBSAs and other rows as Counties)
+1. **FIPS code column:** dataset must contain a column of county OR cbsa 5-digit FIPS codes *named "cbsa_code","geoid", or "stco_code"*
+2. **Tidy:** the unit of observation must be cbsa OR county *(1 row = 1 county OR 1 cbsa)*
+3. **Single geography level:** dataset must be entirely county-level or entirely cbsa-level, not a mixture (NO datasets where some rows as CBSAs and other rows as Counties)
 
 
 
 ### Step 4 Detail
 
-Note: Custom label options (title, subtitle, notes, source) apply only to "Download Map (Publication Ready!)" and "Download the Code" products (except "legend title" which applies to all map downloads).
+
 
 **Download the map!(Publication Ready!)** 
-**"Download the code"** generates code that you can use a to reproduce on your PC the customized publication-ready map. The "Download csv!" and "Download Shapefiles!" buttons equip you with all the dependencies you need to run the code in an Rmarkdown file on your machine. You can then edit the code, customizing the map further. Be sure to follow the instructions below. Especially if you are working outside of Brookings, filepaths in the code MUST be edited in order for the dependencies to be loaded. 
+This button generates and html of a publication-ready map that looks exactly as you have customized it in-app. 
+
+* *Custom label options* (title, subtitle, notes, source, figure number) apply only to "Download Map (Publication Ready!)" and "Download the Code" products (except "legend title" which applies to all map downloads).
+
+* *Layout Adjustments* can be performed by changing the sliders. These control the size of the map and the size of the logo. This can be used to ensure all content fits on the webpage. The logo may not be displayed on the .html output if the map size is too large.
+
+
+**"Download the code!" button** 
+This button generates code that you can use a to reproduce on your PC the customized publication-ready map. The "Download csv!" and "Download Shapefiles!" buttons equip you with all the dependencies you need to run the code in an Rmarkdown file on your machine. You can then edit the code, customizing the map further. Be sure to follow the instructions below. Especially if you are working outside of Brookings, filepaths in the code MUST be edited in order for the dependencies to be loaded. 
 
 
 ## Instructions to download code to reproduce publication-ready map
 
-1. Click "Download the Code!". An HTML window will open containing code that produces the publication ready map; copy all content (below the dependency table) into an empty Rmarkdown file with the YAML header set to "output: html_document"
-2. *Install Dependencies* Click "Download csv!" & "Download Shapefiles!" A csv file containing the dataset will download as well as a zipfile containing shapefiles and geography crosswalk. Ensure that the csv file containing the dataset is saved under the name "fulldata.csv" in the same folder as the Rmarkdown file. Ensure that the zipfile is saved under "shape_files.zip" (downloading zipfile is not necessary if on a Brookings computer with access to V drive). Ensure paths to downloaded files and working directory are properly set in code (see warning)
+1. **Click "Download the Code!"**. An HTML window will open containing code that produces the publication ready map; copy all content (below the dependency table) into an empty Rmarkdown file with the YAML header set to "output: html_document"
+2. **Dependencies: Click "Download csv!" & "Download Shapefiles!"** A csv file containing the dataset will download as well as a zipfile containing shapefiles and geography crosswalk. Ensure that the csv file containing the dataset is saved under the name "fulldata.csv" in the same folder as the Rmarkdown file. Ensure that the zipfile is saved under "shape_files.zip" (downloading zipfile is not necessary if on a Brookings computer with access to V drive). Ensure paths to downloaded files and working directory are properly set in code (see warning)
 3. Ensure that all necessary packages are installed on your machine. Then, click knit!
 
 **WARNING: If not on a Brookings computer with access to the V drive, you MUST download the zipfile containing the three shapefiles and geography crosswalk accordingly adjust the four filepaths in the Rmarkdown code before knitting. Moreover, you must delete the code at the very end of the document that loads the logo, "logo2.jpeg".** 
@@ -129,10 +137,11 @@ CBSA&nbsp; &nbsp;&nbsp;| file name | descriptions
 15| cbsa_metromonitor | Rankings and values from metro monitor report, 2019
 16| cbsa_low_wage_worker | Nine major low-wage-worker groups
 
+
 ### Known Issues
 
 * When resolution is set to low for a non-warehouse dataset, hover tooltips become innacurate (click tooltips remain accurate)
 
-* **'Clicking a Zillion Times' Advisory:** Clicking on an input a zillion times is not advised. The server redraws the map with each user's click on an input, even if that click is made obselete by a future click. (E.g., if a user toggles an option from "off" to "on" and then a second later from "on" to "off", the map will be redrawn once reflecting "on" and again to reflect "off"). On some machines, loading may take a few seconds, and a chain of many clicks may create a backlog
+* **'Clicking a Zillion Times' Advisory:** The server redraws the map with each user's click on an input, even if that click is made obselete by a future click. (E.g., if a user toggles an option from "off" to "on" and then a second later from "on" to "off", the map will be redrawn once reflecting "on" and again to reflect "off"). On some machines, loading may take a few seconds, and a chain of many clicks may create a backlog
 
 

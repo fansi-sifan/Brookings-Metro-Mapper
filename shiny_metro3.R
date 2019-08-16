@@ -78,7 +78,6 @@ library("tidyverse")
 
 library("leaflet")
 
-library("DT")
 
 options(shiny.sanitize.errors = TRUE)
 
@@ -300,7 +299,7 @@ ui <- fluidPage(
     
     mainPanel(
       
-      dataTableOutput("contents"),
+      tableOutput("contents"),
       
       leafletOutput("map"))
     
@@ -453,7 +452,7 @@ server <- function(input, output,session) {
   
   fborders <- reactive({
     
-    req(input$var)
+    req(input$var, cancelOutput = TRUE)
     if(input$glevel == "county"){
       
       (if(input$custom == FALSE) {st_names <- county_cbsa_st$st_name} else {st_names <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$st_name)})
@@ -473,7 +472,7 @@ server <- function(input, output,session) {
   })
   
   
-  bmapper <-function(){if (input$sbord == FALSE) {fborders} else {fborders()}}
+  bmapper <-reactive({if (input$sbord == FALSE) {fborders} else {fborders()}})
   
   
   the_map <- reactive({
@@ -490,30 +489,20 @@ server <- function(input, output,session) {
   
   
 
-  
-  
-  
-
-  
-  output$contents <- DT::renderDataTable({
+  output$contents <- renderTable({
     
-    display_data <- info()
     
-    DT::datatable(
-      
-      display_data,
-      
-      options = list(
-        
-        lengthMenu = list(c(3, 5, 10, -1), c("3","5", "15", "All")),
-        
-        pageLength = 5
-        
-      )
-      
-    )
+    
+    input_data <- info()
+    
+    
+    head(input_data, 4L)
+    
+    
     
   })
+  
+  
   
   
   output$histo = renderPlot({
@@ -551,12 +540,14 @@ server <- function(input, output,session) {
 
   
   
-  tmapper <- function(...){
+  tmapper <- reactive({
     
     req(input$var, cancelOutput = TRUE)
     req(input$bubbs, cancelOutput = TRUE)
     
     input_data2<-input_data1()
+    
+    req(!is.null(input_data2))
     
     if (input$bubbs == "low") 
     {
@@ -573,8 +564,7 @@ server <- function(input, output,session) {
                    popup.vars=c("name", input$var2, input$var),
                    popup.format = list(text.align = "left", format = "f", digits = 3),
                    colorNA = NULL, 
-                   showNA = NULL, 
-                   ...
+                   showNA = NULL
                    
         )
       } else {
@@ -586,8 +576,7 @@ server <- function(input, output,session) {
                    popup.vars=c( "name", input$var2, input$var),
                    popup.format = list(text.align = "left", format = "f", digits = 3),
                    colorNA = NULL, 
-                   showNA = NULL, 
-                   ...
+                   showNA = NULL
                    
                   )     
         
@@ -609,8 +598,7 @@ server <- function(input, output,session) {
                     popup.format = list(text.align = "left", format = "f", digits = 3),
                     colorNA = NULL, 
                     showNA = NULL, 
-                    border.col = if(input$bord == FALSE){NULL} else {"#636363"},
-                    ...
+                    border.col = if(input$bord == FALSE){NULL} else {"#636363"}
                     )
       } else {
         
@@ -622,8 +610,7 @@ server <- function(input, output,session) {
                     popup.format = list(text.align = "left", format = "f", digits = 3),
                     colorNA = NULL, 
                     showNA = NULL, 
-                    border.col = if(input$bord == FALSE){NULL} else {"#636363"},
-                    ...
+                    border.col = if(input$bord == FALSE){NULL} else {"#636363"}
                     )     
         
         
@@ -635,7 +622,7 @@ server <- function(input, output,session) {
     
     
     
-  }
+  })
   
   
   
@@ -690,6 +677,25 @@ server <- function(input, output,session) {
     }
   )
   
+  
+  output$report2 <- downloadHandler(
+    filename = "report.html",
+    
+    content = function(file) {
+      src <- normalizePath('report3.Rmd')
+      src2 <- normalizePath('logo2.jpeg')
+      
+
+      file.copy(src, 'report3.Rmd', overwrite = TRUE)
+      file.copy(src2, 'logo2.jpeg', overwrite = TRUE)
+      
+      
+      rmarkdown::render('report3.Rmd', output_file = file)
+      
+    }
+  )
+  
+
   
   output$code <- downloadHandler(
     filename = "metro_coder.html",
