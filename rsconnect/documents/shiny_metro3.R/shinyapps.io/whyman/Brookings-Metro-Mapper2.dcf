@@ -1,0 +1,12 @@
+name: Brookings-Metro-Mapper2
+title: Brookings-Metro-Mapper2
+username:
+account: whyman
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1087518
+bundleId: 2326093
+url: https://whyman.shinyapps.io/Brookings-Metro-Mapper2/
+when: 1565964442.22406
+asMultiple: FALSE
+asStatic: FALSE

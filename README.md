@@ -35,6 +35,7 @@
 
 
 The first three "Step 1" subparts are mandatory in order to proceed (Steps 1A, 1B, 1C). Mark those three subparts **in order** from top to bottom and then press "Show Data" to display map.
+
 ### Avoid Common Error Triggers:
 
 * **If your dataset contains *county-level* data, you MUST mark *"county"* for (Step 1C) "The dataset you chose is on what geography level?" (Likewise, mark "metro" for metro-level datasets)**
@@ -70,20 +71,23 @@ See Instructions for using reproducible R Code
 
 ## Instructions to download code to reproduce publication-ready map
 
-1. Click "Download the Code!". An HTML window will open containing code that produces the publication ready map, copy entire document (below instructions) into an empty Rmarkdown file with the YAML header set to "output: html_document"
+1. Click "Download the Code!". An HTML window will open containing code that produces the publication ready map, copy entire document (below the instructions) into an empty Rmarkdown file with the YAML header set to "output: html_document"
 2. Click "Download csv!". A csv file containing the dataset will download. Ensure that this file is saved under the name "fulldata.csv" in the same folder as the Rmarkdown file.
 3. Press "Knit"
 
-Common Error Triggers:
+NOTE: If not on a computer with access to the V drive, you must download the zipfile containing the three shapefiles and accordingly adjust the three filepaths in the Rmarkdown code before knitting
+
+**Common Error Triggers:**
 * Ensure all necessary packages are installed 
 * In order to run, the code loads (1) shapefiles from the V drive, (2) jpeg of Brookings's logo, (3) the .csv file you download containing the dataset. The working directory might have to be set differently or the filepaths might have to be altered in order to successfully run the code.
 
 
 ### Index of Data Warehouse Datasets
 
+#### County-Level Datasets
 
-County&nbsp;&nbsp;&nbsp; | file name | descriptions
--------|-----------|-------------
+&nbsp;&nbsp;&nbsp; | file name | descriptions
+--|-----------|-------------
 1 | co_acs | Selected indicators calculated from ACS summary tables
 2 | co_acs_raw | Original columns fetched from ACS summary tables
 3 | co_export | Export volume and intensity from Export Monitor
@@ -95,10 +99,10 @@ County&nbsp;&nbsp;&nbsp; | file name | descriptions
 9 | co_uspto | Utility patent grants, 2015
 
 
+#### CBSA-Level Datasets
 
-
-CBSA&nbsp; &nbsp;&nbsp;| file name | descriptions
------|-----------|---------------------------------------------------
+&nbsp;&nbsp;&nbsp;| file name | descriptions
+--|-----------|---------------------------------------------------
 1 | cbsa_acs | Selected indicators calculated from ACS summary tables
 2 | cbsa_acs_raw | Original columns fetched from ACS summary tables
 3 | cbsa_export | Export volume and intensity from Export Monitor

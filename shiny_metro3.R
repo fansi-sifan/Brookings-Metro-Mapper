@@ -49,8 +49,7 @@
 
 # sapply(pkgs,require,warn.conflicts = TRUE,character.only = TRUE)
 
-# shapefile source: 
-#https://evergreen.data.socrata.com/dataset/Cartographic-Boundary-Shapefiles-Metropolitan-And-/w6x3-m3ia
+
 # Read Data ---------------------------------------------------------------
 
 #"V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/states/low_definition/states51_inset_ld.shp"
@@ -69,15 +68,12 @@ library("sf")
 
 library("readr")
 
-library("leaflet")
-
 library("tmap")
 
 library("rmapshaper")
 
 library("tidyverse")
 
-library("DT")
 
 options(shiny.sanitize.errors = TRUE)
 
@@ -113,6 +109,8 @@ list_all_co<-mget(load("data/list_all_co.rda"))$list_all_co
 
 basic_cbsa<-names(county_cbsa_st %>% dplyr::select(contains("cbsa_")) %>% unique())
 basic_co<-names(county_cbsa_st %>% dplyr::select(contains("co_"),"cbsa_code","cbsa_name") %>% unique())
+
+
 
 # Shiny R -----------------------------------------------------------------
 
@@ -268,19 +266,25 @@ ui <- fluidPage(
         
         downloadButton("report", label = "Download map! (publication-ready!)"),
         
-        textInput("title", label = "Report title"), 
+        textInput("fignum", label = "Figure Number", value = "1"), 
         
-        textInput("subtitle", label = "Report subtitle"), 
+        textInput("title", label = "Map title"), 
         
-        textInput("source", label = "Report source"), 
+        textInput("subtitle", label = "Map subtitle"), 
         
-        textInput("notes", label = "Report notes"),
+        textInput("source", label = "Source"), 
         
-        sliderInput("asp", label = "Publication map height", min = 20, max = 35, value = 30),
+        textInput("notes", label = "Notes"),
+        
+        sliderInput("asp", label = "map size", min = 200, max = 400, value = 300),
+
+        sliderInput("ogo", label = "logo size", min = 200, max = 700, value = 450),
         
         downloadButton("code", label = "Download the code!"),
         
-        downloadButton("basic", label = "Download csv!")
+        downloadButton("basic", label = "Download csv!"),
+        
+        downloadButton("zippy", label = "Download shapefiles!")
         
         
       )
@@ -293,7 +297,7 @@ ui <- fluidPage(
       
       dataTableOutput("contents"),
       
-      leafletOutput("map"))
+      leaflet::leafletOutput("map"))
     
     
   )
@@ -302,6 +306,7 @@ ui <- fluidPage(
   ),
   
   tabPanel("Instructions",
+           
            includeMarkdown("README.md"))
   )
   
@@ -336,8 +341,15 @@ server <- function(input, output,session) {
     updateSelectInput(session,"var",'Choose a variable to map', choices = vars)
     updateSelectInput(session,"var2",'Choose a variable to map (bubble size)', choices = vars)
     
+    (if(input$glevel == "county"){
+    (if(input$custom == FALSE) {co_codes <- county_cbsa_st$stco_code} else {co_codes <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$stco_code)})
+    }else{
+    (if(input$custom == FALSE) {cbsa_codes <- county_cbsa_st$cbsa_code} else {cbsa_codes <- (filter(county_cbsa_st, st_name %in% input$states | cbsa_name %in% input$cbsa_choose)$cbsa_code)})
+    })
     
-    df
+    
+    df %>% filter(geocode = (if(input$glevel == "county"){co_codes}else{cbsa_codes}))
+    
     } else {
     
       if (grepl("cbsa",input$wharehouse) == TRUE){
@@ -455,10 +467,7 @@ server <- function(input, output,session) {
   })
   
   
-  bmapper <-function(){
-    if (input$sbord == FALSE) {fborders} else {fborders()}
-    
-  }
+  bmapper <-function(){if (input$sbord == FALSE) {fborders} else {fborders()}}
   
   
   the_map <- reactive({
@@ -466,6 +475,7 @@ server <- function(input, output,session) {
       legend.position = c("LEFT","BOTTOM"),
       legend.outside = FALSE,
       legend.title.size = .0001,
+      legend.format = (big.num.abbr = NA),
       title.position = c("LEFT", "BOTTOM"),
       title = input$title,
       title.size = 1.5,
@@ -514,14 +524,14 @@ server <- function(input, output,session) {
     
   })
   
-  output$map = renderLeaflet({
+  output$map = leaflet::renderLeaflet({
     
     req(input$var)    
     
     the_map<-the_map()
     
     
-    tmap_leaflet(the_map)
+    leaflet::tmap_leaflet(the_map)
     
     
     
@@ -633,11 +643,10 @@ server <- function(input, output,session) {
       tmap_save(borders48 + tm_shape(input_data1(), projection = 2163) +
                 tmapper() + 
                 tm_layout(
-                    legend.position = c("LEFT","BOTTOM"),
+                    legend.position = c("RIGHT","BOTTOM"),
                     legend.outside = FALSE,
                     legend.title.size = .0001,
-                    title.position = c("LEFT", "BOTTOM"),
-                    title = input$title,
+                    legend.format = (big.num.abbr = NA),                    title = input$title,
                     title.size = 3,
                     legend.text.size = 1.5,
                     fontfamily = "serif"), 
@@ -697,6 +706,17 @@ server <- function(input, output,session) {
     content = function(file) {write_csv(info2(),path = file)}
   ) 
   
+  
+  output$zippy <- downloadHandler(
+    filename <- function() {
+      paste("shapefiles", "zip", sep=".")
+    },
+    
+    content <- function(file) {
+      file.copy("shape_files.zip", file)
+    },
+    contentType = "application/zip"
+  )
   
   
   
