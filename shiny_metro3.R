@@ -56,6 +56,8 @@
 #"V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/counties/low_definition/counties51_inset_ld.shp"
 #"V:/metro_data_warehouse/data_spatial/shapefiles/2018/insets/cbsas/low_definition/cbsas51_inset_ld.shp"
 
+library('leaflet')
+
 library('RColorBrewer')
 
 library('plotly')
@@ -74,6 +76,9 @@ library("rmapshaper")
 
 library("tidyverse")
 
+library("leaflet")
+
+library("DT")
 
 options(shiny.sanitize.errors = TRUE)
 
@@ -141,7 +146,7 @@ ui <- fluidPage(
            
       conditionalPanel("input.wharehouse0 == 'TRUE'",
         
-                       selectizeInput("wharehouse","Choose data warehouse dataset", choices = c(names(list_all_co),names(list_all_cbsa)), selected = NULL)
+                       selectizeInput("wharehouse","Choose data warehouse dataset", choices = c(names(list_all_cbsa),names(list_all_co)), selected = NULL)
       ),
       
       conditionalPanel("input.wharehouse0 == 'FALSE'",
@@ -297,7 +302,7 @@ ui <- fluidPage(
       
       dataTableOutput("contents"),
       
-      leaflet::leafletOutput("map"))
+      leafletOutput("map"))
     
     
   )
@@ -321,7 +326,8 @@ server <- function(input, output,session) {
   
   
   info <- eventReactive(input$choice,{
-  
+    if(input$custom == TRUE){req(!is.null(input$states) | !is.null(input$cbsa_choose) | !is.null(input$co_choose), cancelOutput = TRUE)}
+    
     if (input$wharehouse0 == "FALSE"){
   
         req(input$file1)
@@ -512,6 +518,8 @@ server <- function(input, output,session) {
   
   output$histo = renderPlot({
     req(input$var)
+
+    
     input_data <- info()
     
     if(is.numeric(input_data[[input$var]])){
@@ -524,12 +532,14 @@ server <- function(input, output,session) {
     
   })
   
-  output$map = leaflet::renderLeaflet({
+  output$map = renderLeaflet({
     
-    req(input$var)    
+    req(input$var)
+    
     
     the_map<-the_map()
     
+    req(!is.null(the_map), cancelOutput = TRUE)
     
     tmap_leaflet(the_map)
     

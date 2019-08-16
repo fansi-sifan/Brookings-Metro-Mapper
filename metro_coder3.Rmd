@@ -8,10 +8,14 @@ knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE, comment = NA)
 
 
 
-1) Copy and paste all content below the dependency table into empty Rmarkdown document (set to html output)
-2) Ensure the downloadable prerequisite "fulldata.csv" is in the same folder as the Rmarkdown document from step 1 (Click the download prerequisite button, located just below the button you used to generate this html). This csv contains your original data paired with shapefile geometry.
-3) Ensure all listed packages are installed
-4) Ensure the working directory and paths are set properly. Here are the dependencies and paths for Brookings and non-Brookings machines: (Note - The code assumes you are using a Brookings machine. If not, paths MUST be changed!)
+1) Copy and paste all content below the dependency table into an empty Rmarkdown document on your machine (set YAML header to "output: html_document")
+2) *Install Dependencies* Click "Download csv!" & "Download Shapefiles!" A csv file containing the dataset will download as well as a zipfile containing shapefiles and geography crosswalk. Ensure that the csv file containing the dataset is saved under the name "fulldata.csv" in the same folder as the Rmarkdown file. Ensure that the zipfile is saved under "shape_files.zip" (downloading zipfile is not necessary if on a Brookings computer with access to V drive). Ensure paths to downloaded files and working directory are properly set in code (see warning)
+3) Ensure that all necessary packages are installed on your machine. Then, click knit!
+
+
+**WARNING: If not on a Brookings computer with access to the V drive, you MUST download the zipfile containing the three shapefiles and geography crosswalk accordingly adjust the four filepaths in the Rmarkdown code before knitting. Moreover, you must delete the code at the very end of the document that loads the logo, "logo2.jpeg"** 
+
+Here are the dependencies and paths for Brookings and non-Brookings machines:
 
 ```{r}
 

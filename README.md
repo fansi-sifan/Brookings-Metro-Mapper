@@ -65,29 +65,39 @@ The first three "Step 1" subparts are mandatory in order to proceed (Steps 1A, 1
 Note: Custom label options (title, subtitle, notes, source) apply only to "Download Map (Publication Ready!)" and "Download the Code" products (except "legend title" which applies to all map downloads).
 
 **Download the map!(Publication Ready!)** 
-**"Download the code"** to generate code
-See Instructions for using reproducible R Code
+**"Download the code"** generates code that you can use a to reproduce on your PC the customized publication-ready map. The "Download csv!" and "Download Shapefiles!" buttons equip you with all the dependencies you need to run the code in an Rmarkdown file on your machine. You can then edit the code, customizing the map further. Be sure to follow the instructions below. Especially if you are working outside of Brookings, filepaths in the code MUST be edited in order for the dependencies to be loaded. 
 
 
 ## Instructions to download code to reproduce publication-ready map
 
-1. Click "Download the Code!". An HTML window will open containing code that produces the publication ready map, copy entire document (below the instructions) into an empty Rmarkdown file with the YAML header set to "output: html_document"
-2. Click "Download csv!". A csv file containing the dataset will download. Ensure that this file is saved under the name "fulldata.csv" in the same folder as the Rmarkdown file.
-3. Press "Knit"
+1. Click "Download the Code!". An HTML window will open containing code that produces the publication ready map; copy all content (below the dependency table) into an empty Rmarkdown file with the YAML header set to "output: html_document"
+2. *Install Dependencies* Click "Download csv!" & "Download Shapefiles!" A csv file containing the dataset will download as well as a zipfile containing shapefiles and geography crosswalk. Ensure that the csv file containing the dataset is saved under the name "fulldata.csv" in the same folder as the Rmarkdown file. Ensure that the zipfile is saved under "shape_files.zip" (downloading zipfile is not necessary if on a Brookings computer with access to V drive). Ensure paths to downloaded files and working directory are properly set in code (see warning)
+3. Ensure that all necessary packages are installed on your machine. Then, click knit!
 
-NOTE: If not on a computer with access to the V drive, you must download the zipfile containing the three shapefiles and accordingly adjust the three filepaths in the Rmarkdown code before knitting
+**WARNING: If not on a Brookings computer with access to the V drive, you MUST download the zipfile containing the three shapefiles and geography crosswalk accordingly adjust the four filepaths in the Rmarkdown code before knitting. Moreover, you must delete the code at the very end of the document that loads the logo, "logo2.jpeg".** 
 
-**Common Error Triggers:**
-* Ensure all necessary packages are installed 
-* In order to run, the code loads (1) shapefiles from the V drive, (2) jpeg of Brookings's logo, (3) the .csv file you download containing the dataset. The working directory might have to be set differently or the filepaths might have to be altered in order to successfully run the code.
+### Dependencies for Downloaded Code
+
+Here are the dependencies for running downloaded code on Brookings and non-Brookings machines:
+
+Dependency&nbsp;&nbsp;&nbsp;	| File name	| Access inside Brookings	  | Access outside Brookings
+-----------|-----------|----------------|----------
+Your Dataset |	 full_data.csv	| "Download csv!" button	| "Download csv!" button 
+CBSA Shapefile	| cbsas51_inset_ld.shp	| V drive |	 "Download shapefiles!" button 
+CBSA Shapefile	| counties51_inset_ld.shp	| V drive	| "Download shapefiles!" button 
+CBSA Shapefile	| states51_inset_ld.shp	| V drive	| "Download shapefiles!" button 
+geography crosswalk	| county_cbsa_state.csv	| V drive	| "Download shapefiles!" button
+logo	| logo2.jpeg | V drive | NA
 
 
 ### Index of Data Warehouse Datasets
 
+
+
 #### County-Level Datasets
 
-&nbsp;&nbsp;&nbsp; | file name | descriptions
---|-----------|-------------
+County&nbsp;&nbsp;&nbsp; | file name | descriptions
+-------|-----------|-------------
 1 | co_acs | Selected indicators calculated from ACS summary tables
 2 | co_acs_raw | Original columns fetched from ACS summary tables
 3 | co_export | Export volume and intensity from Export Monitor
@@ -98,11 +108,10 @@ NOTE: If not on a computer with access to the V drive, you must download the zip
 8 | co_univ_rd | University R&D investment, 2017
 9 | co_uspto | Utility patent grants, 2015
 
-
 #### CBSA-Level Datasets
 
-&nbsp;&nbsp;&nbsp;| file name | descriptions
---|-----------|---------------------------------------------------
+CBSA&nbsp; &nbsp;&nbsp;| file name | descriptions
+-----|-----------|---------------------------------------------------
 1 | cbsa_acs | Selected indicators calculated from ACS summary tables
 2 | cbsa_acs_raw | Original columns fetched from ACS summary tables
 3 | cbsa_export | Export volume and intensity from Export Monitor
@@ -119,7 +128,6 @@ NOTE: If not on a computer with access to the V drive, you must download the zip
 14| cbsa_i5hgc | Inc 5000 high growth firms by metro, 2017
 15| cbsa_metromonitor | Rankings and values from metro monitor report, 2019
 16| cbsa_low_wage_worker | Nine major low-wage-worker groups
-
 
 ### Known Issues
 
