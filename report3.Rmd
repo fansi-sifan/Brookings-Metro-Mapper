@@ -1,6 +1,5 @@
 ---
-output: html_document
-
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -65,32 +64,28 @@ yyy<-paste0(input$ogo,"px")
 <h6>`r input$subtitle` <h6>
 
 ```{r, fig.height=xxx, fig.width= 50, strip.white=TRUE}
+
 input_data2<-input_data1()
 
+if(is.numeric(input_data2[[input$var]])){frmat<-list(big.num.abbr = c("000 000" = 6, "billion" = 9))}else{frmat<-list(text.align = "left")}
 
-bmapper() + tm_shape(input_data2, projection = 2163) + 
-  
-  tmapper() + 
-  
-              tm_layout(
+if(input$hiak == FALSE){leftright<-"LEFT"}else{leftright<-"RIGHT"}
+
+bmapper() + tm_shape(input_data2, projection = 2163) + tmapper() + tm_layout(
                            scale = 3.5,
-                           legend.position = c("RIGHT","BOTTOM"),
+                           legend.position = c(leftright,"BOTTOM"),
                            legend.outside = FALSE,
                            legend.text.size = 1,
                            legend.title.size = .0001,
-                           legend.format = (big.num.abbr = NA),     
-                           title.position = c("RIGHT","BOTTOM"),
+                           title.position = c(leftright,"BOTTOM"),
                            title = input$legen,
                            title.size = 1,
-                           fontfamily = "Interstate",
+                           legend.format = frmat,          
                            frame = FALSE) 
 
 
 
 ```
-
-
-
 <h5> <span style = "color:#C0C0C0"> <font size = "2"> `r input$notes` </font> </span>  <h5>
  <hr>
  <p><p/>

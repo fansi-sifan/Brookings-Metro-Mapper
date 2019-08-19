@@ -34,8 +34,8 @@ ff<-c("logo", "logo2.jpeg", "V drive", "NA")
 
 deps<-rbind.data.frame(aa,bb,cc,dd,ee,ff, make.row.names = FALSE)
 colnames(deps)<-zero
-kableExtra::kable(deps)
 
+kableExtra::kable(deps)
 
 
 ```
@@ -287,7 +287,6 @@ cat('tm_layout(',
           'legend.text.size = 1,',
           'legend.title.size = .0001,',
           'title.position = c("RIGHT","BOTTOM"),',
-          'legend.format = (big.num.abbr = NA),',
           'title ="',input$legen,'",',
           'title.size = 1,',
           'fontfamily = "Interstate",',
@@ -372,7 +371,6 @@ cat("```")
 
 ```{r}
 cat(
-
 "<h5> <span style = 'color:#C0C0C0'> <font size = '2'>",input$notes," </font> </span>  <h5>", "\n",
 "<hr>", "\n",
 "<p><p/>", "\n",

@@ -2,7 +2,7 @@
 
  
 ### Product:
-* generate & download a *customizable*, *interactive* U.S. chloropleth map from a metro-level or county-level dataset you upload (or select form data warehouse). Download publication-ready map and source code to customize further in Rmarkdown!
+* generate & download a *customizable*, *interactive* U.S. chloropleth map from a metro-level or county-level dataset you upload (or select from data warehouse). Download publication-ready map, or use source code to customize further in Rmarkdown!
 
 #### Customization features:
 * **custom scale:** 
@@ -35,6 +35,10 @@
 
 
 The first three "Step 1" subparts are mandatory in order to proceed (Steps 1A, 1B, 1C). Mark those three subparts **in order** from top to bottom and then press "Show Data" to display map.
+
+* 1A = select whether you want to use a data warehouse dataset or upload your own
+* 1B = upload your dataset / select from data wharehouse dropdown 
+* 1C = Is your dataset on county level, or metro level?
 
 ### Avoid Common Error Triggers:
 
@@ -140,7 +144,10 @@ CBSA&nbsp; &nbsp;&nbsp;| file name | descriptions
 
 ### Known Issues
 
-* When resolution is set to low for a non-warehouse dataset, hover tooltips become innacurate (click tooltips remain accurate)
+* When resolution is set to low (bubble map) for a non-warehouse dataset, hover tooltips become innacurate (click tooltips remain accurate)
+
+* When resolution is set to low (bubble map), legend may overlap graph in downloaded products
+
 
 * **'Clicking a Zillion Times' Advisory:** The server redraws the map with each user's click on an input, even if that click is made obselete by a future click. (E.g., if a user toggles an option from "off" to "on" and then a second later from "on" to "off", the map will be redrawn once reflecting "on" and again to reflect "off"). On some machines, loading may take a few seconds, and a chain of many clicks may create a backlog
 

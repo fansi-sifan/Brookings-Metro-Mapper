@@ -28,10 +28,9 @@
 
 # --------------
 
-# pkgs <- c('dplyr','maps','mapproj','ggplot2','scales','ggthemes','RColorBrewer','plotly','fiftystater',
+# pkgs <- c('tidyverse','leaflet','RColorBrewer','colourpicker','sf','tmap','DT','plotly',
 
-# 'shiny','colourpicker','plyr')
-
+# 'shiny', 'rmapshaper')
 
 # check <- sapply(pkgs,require,warn.conflicts = TRUE,character.only = TRUE)
 
@@ -47,7 +46,7 @@
 
 
 
-# sapply(pkgs,require,warn.conflicts = TRUE,character.only = TRUE)
+# sapply(pkgs,require,warn.conflicts = TRUE, character.only = TRUE)
 
 
 # Read Data ---------------------------------------------------------------
@@ -60,15 +59,11 @@ library('leaflet')
 
 library('RColorBrewer')
 
-library('plotly')
-
 library('shiny')
 
 library('colourpicker')
 
-library("sf")
-
-library("readr")
+library('sf')
 
 library("tmap")
 
@@ -78,6 +73,9 @@ library("tidyverse")
 
 library("leaflet")
 
+library("DT")
+
+library("shinydashboard")
 
 options(shiny.sanitize.errors = TRUE)
 
@@ -103,7 +101,6 @@ st48<-filter(st50, !grepl("Alaska|Hawaii",NAME))
 borders50<-tm_shape(st50, projection = 2163)+tm_borders(lwd = 0.5)+tm_layout(frame=FALSE)
 borders48<-tm_shape(st48, projection = 2163)+tm_borders(lwd = 0.5)+tm_layout(frame=FALSE)
 
-
 co_all<-read_csv("data/co_all.csv", col_types = cols(stco_code = col_character()))
 cbsa_all<-read_csv("data/cbsa_all.csv", col_types = cols(cbsa_code = col_character()))
 county_cbsa_st<-read_csv("data/county_cbsa_st.csv", col_types = cols(cbsa_code = col_character(), stco_code = col_character()))
@@ -122,23 +119,25 @@ basic_co<-names(county_cbsa_st %>% dplyr::select(contains("co_"),"cbsa_code","cb
 
 ui <- fluidPage(
   
-  titlePanel("Metro Mapper"),
-  
   tabsetPanel(type = "tabs",
               
-  tabPanel("Mapper",
+  tabPanel(
   
-  sidebarLayout(
-    
-    
-    
-    sidebarPanel(
+  dashboardPage(
+    dashboardHeader(title = "Metro Mapper"),
+    dashboardSidebar(
+      tags$head(
+        tags$style(HTML("
+                      .sidebar { height: 99vh; overflow-y: auto; }
+                      .label { color: #000000}
+                      " )
+        )),
       
       
+      div(style = "text-align:center", helpText("Contact: whyman@uchicago.edu")),
       
-      helpText("Contact: dwhyman@brookings.edu"),
+      h3(div(style="text-align:center","1. Choose Your Dataset!")),
       
-      h3("1. Choose Your Dataset!"),
       
       radioButtons("wharehouse0","Where is your dataset?", choices = c("Data warehouse" = "TRUE", "I'll upload my own .csv file" = "FALSE"), selected = character(0)),
  
@@ -155,8 +154,8 @@ ui <- fluidPage(
       
       radioButtons("glevel","The dataset you chose is on what geography level?", choices = c("metro","county"), selected = character(0)),
       
-      conditionalPanel(condition = "input.wharehouse0 == 'TRUE'",      
-      
+         
+      conditionalPanel(condition = "input.glevel == 'metro' | input.glevel == 'county'",
                        checkboxInput("custom","Filter dataset by jurisdiction", FALSE)
       ),
 
@@ -197,7 +196,7 @@ ui <- fluidPage(
       
       tags$hr(),
       
-      h3("2. Choose a Column From Your Dataset!"),
+      h3(div(style="text-align:center","2. Choose Column from Dataset!")),
       
       
       selectInput("var", "Select variable to map",
@@ -215,8 +214,8 @@ ui <- fluidPage(
       
       tags$hr(),
       
-      h3("3. Customize Your Map!"),
-      
+      h3(div(style="text-align:center","3. Customize Your Map!")),
+
       
       checkboxInput("customize", "I'm Ready to customize!", FALSE),
       
@@ -250,13 +249,15 @@ ui <- fluidPage(
             colourInput("high", "Choose a color for high value", "#08519c"),
             
             
+            conditionalPanel("input.scale == true",
             plotOutput("histo",width = "75%", height = "200px")
+            )
       
       ),
       
       tags$hr(),
       
-      h3("4. Download Map & Code!"),
+      h3("  4. Download Map & Code!"),
       
       checkboxInput("export","I'm Ready to Download!", FALSE),
       
@@ -280,7 +281,7 @@ ui <- fluidPage(
         
         textInput("notes", label = "Notes"),
         
-        sliderInput("asp", label = "map size", min = 200, max = 400, value = 300),
+        sliderInput("asp", label = "map size", min = 200, max = 400, value = 275),
 
         sliderInput("ogo", label = "logo size", min = 200, max = 700, value = 450),
         
@@ -292,19 +293,76 @@ ui <- fluidPage(
         
         
       )
-      )
+      ), width = "20em"
     ),
     
     
     
-    mainPanel(
+    dashboardBody(
       
-      tableOutput("contents"),
       
-      leafletOutput("map"))
+     
+      div(style = 'overflow-x: scroll', DT::dataTableOutput("contents")),
+      
+      leafletOutput("map")),
+    
+      #h5("Note: Basemap will *not* show on downloaded maps. Custom labels will *only* show on on downloaded maps.")
+    tags$head(tags$style(HTML('
+                              /* labels */
+                              .label {
+                              color: #000000;
+                              text-color: #000000;
+          
+                              }
+
+                              /* logo */
+                              .skin-blue .main-header .logo {
+                              background-color: #10457a;
+                              }
+                              
+                              /* logo when hovered */
+                              .skin-blue .main-header .logo:hover {
+                              background-color: #10457a;
+                              }
+                              
+                              /* navbar (rest of the header) */
+                              .skin-blue .main-header .navbar {
+                              background-color: #10457a;
+                              }        
+                              
+                              /* main sidebar */
+                              .skin-blue .main-sidebar {
+                              background-color: #133366;
+                              text-color: #000000;
+                              }
+                              
+                              /* active selected tab in the sidebarmenu */
+                              .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
+                              background-color: #133366;
+
+                              }
+                              
+                              /* other links in the sidebarmenu */
+                              .skin-blue .main-sidebar .sidebar .sidebar-menu a{
+                              background-color: #133366;
+                              color: #000000;
+                              }
+                              
+                              /* other links in the sidebarmenu when hovered */
+                              .skin-blue .main-sidebar .sidebar .sidebar-menu a:hover{
+                              background-color: #133366;
+                              }
+                              /* toggle button when hovered  */                    
+                              .skin-blue .main-header .navbar .sidebar-toggle:hover{
+                              background-color: #133366;
+                              }
+
+                              ')))
     
     
-  )
+  ),
+  
+  title = "Dashboard Test"
   
   
   ),
@@ -323,9 +381,69 @@ ui <- fluidPage(
 server <- function(input, output,session) {
   
   
+    secs<-reactive({if(input$glevel == "county"){2800}else{1800}})
+  
+    breaks <- reactive({
+      if (is.null(input$breaks))
+        list(x = NA, y = NA)
+      else
+        input$breaks
+    })
+    
+  
+
+    
+    low <- reactive({
+      if (is.null(input$low))
+        list(x = NA, y = NA)
+      else
+        input$low
+    })
+    
+    
+    high <- reactive({
+      if (is.null(input$high))
+        {list(x = NA, y = NA)}
+      else
+        {input$high}
+    })
+
+  
+
+     titlee <- reactive({
+       if (is.null(input$title))
+         list(x = NA, y = NA)
+       else
+         input$title
+     })
+     
+
+    dbreaks <- breaks %>% debounce(2500)
+     
+    blow <- low %>% debounce(secs)
+
+    bhigh <- high %>% debounce(secs)
+    
+    btitle <- titlee %>% debounce(secs)
+   
+
+    
+  
+  
+  
+
+    
+    
+
+  
+  
+  
+  
+  
+  
   
   info <- eventReactive(input$choice,{
-    if(input$custom == TRUE){req(!is.null(input$states) | !is.null(input$cbsa_choose) | !is.null(input$co_choose), cancelOutput = TRUE)}
+    if(input$custom == TRUE){validate(need(!is.null(input$states) | !is.null(input$cbsa_choose) | !is.null(input$co_choose), "Please select the jurisdictions you wish to map (Step 1)"))}
     
     if (input$wharehouse0 == "FALSE"){
   
@@ -334,6 +452,9 @@ server <- function(input, output,session) {
     
     
     df <- read_csv(input$file1$datapath, col_types = cols(cbsa_code = col_character(), stco_code = col_character()))
+    
+    if(!is.null(df$cbsa_code)){validate(need(input$glevel == "metro", "Please select *metro* as your dataset's geography level (Step 1)"))}
+    if(!is.null(df$stco_code)){validate(need(input$glevel == "county","Please select *county* as your dataset's geography level (Step 1)"))}
     
     if(is.null(df$cbsa_code) & !is.null(df$geoid)) {df<-dplyr::rename(df,geocode = geoid)}
     if(is.null(df$cbsa_code) & !is.null(df$stco_code)) {df<-dplyr::rename(df,geocode = stco_code)}
@@ -347,19 +468,23 @@ server <- function(input, output,session) {
     updateSelectInput(session,"var2",'Choose a variable to map (bubble size)', choices = vars)
     
     (if(input$glevel == "county"){
+      
+
+      
     (if(input$custom == FALSE) {co_codes <- county_cbsa_st$stco_code} else {co_codes <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$stco_code)})
     }else{
     (if(input$custom == FALSE) {cbsa_codes <- county_cbsa_st$cbsa_code} else {cbsa_codes <- (filter(county_cbsa_st, st_name %in% input$states | cbsa_name %in% input$cbsa_choose)$cbsa_code)})
     })
     
     
-    df %>% filter(geocode = (if(input$glevel == "county"){co_codes}else{cbsa_codes}))
+    df %>% filter(geocode %in% (if(input$glevel == "county"){co_codes}else{cbsa_codes}))
     
     } else {
     
       if (grepl("cbsa",input$wharehouse) == TRUE){
       
-      
+      validate(need(input$glevel == "metro","Please select *metro* as your dataset's geography level (Step 1)"))
+        
             (if(input$custom == FALSE) {cbsa_codes <- county_cbsa_st$cbsa_code} else {cbsa_codes <- (filter(county_cbsa_st, st_name %in% input$states | cbsa_name %in% input$cbsa_choose)$cbsa_code)})
         
       cbsa_columns <- unlist(list_all_cbsa[input$wharehouse], use.names = F)
@@ -386,7 +511,8 @@ server <- function(input, output,session) {
       
       else { 
         
-      
+        validate(need(input$glevel == "county","Please select *county* as your dataset's geography level (Step 1)"))
+        
         (if(input$custom == FALSE) {co_codes <- county_cbsa_st$stco_code} else {co_codes <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$stco_code)})
         
         co_columns <- unlist(list_all_co[input$wharehouse], use.names = F)
@@ -467,20 +593,20 @@ server <- function(input, output,session) {
     
     st_final<-(if(input$hiak == FALSE){st48}else{st50})
     
-    tm_shape(filter(st_final, NAME %in% st_names), projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(frame = FALSE)
+    tm_shape(filter(st_final, NAME %in% st_names), projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(legend.format = (big.num.abbr = NA),
+frame = FALSE)
     
   })
   
   
   bmapper <-reactive({if (input$sbord == FALSE) {fborders} else {fborders()}})
   
-  
+
   the_map <- reactive({
       bmapper() + tm_shape(input_data1(), projection = 2163) + tmapper() + tm_layout(
       legend.position = c("LEFT","BOTTOM"),
       legend.outside = FALSE,
       legend.title.size = .0001,
-      legend.format = (big.num.abbr = NA),
       title.position = c("LEFT", "BOTTOM"),
       title = input$title,
       title.size = 1.5,
@@ -502,7 +628,17 @@ server <- function(input, output,session) {
     
   })
   
-  
+  output$contents <- DT::renderDataTable({
+    info3 <- info2()
+    
+    DT::datatable(
+      info3,
+      options = list(
+        lengthMenu = list(c(3, 5, 15, -1), c("3","5", "15", "All")),
+        pageLength = 3
+      )
+    )
+  })
   
   
   output$histo = renderPlot({
@@ -545,22 +681,25 @@ server <- function(input, output,session) {
     req(input$var, cancelOutput = TRUE)
     req(input$bubbs, cancelOutput = TRUE)
     
+    
     input_data2<-input_data1()
     
     req(!is.null(input_data2))
     
-    if (input$bubbs == "low") 
+    if(input$bubbs == "low") 
     {
-      req(input$var2)
+      #req(input$var2)
+      validate(need(is.numeric(input_data2[[input$var2]]),"Please set bubble size (Step 2) to a *numeric* variable"))
       
-      if(input$scale == TRUE)
-      { req(input$breaks, cancelOutput = TRUE)
+      if(input$scale == TRUE){
+        req(input$breaks, cancelOutput = TRUE)
+       req(dbreaks() != list(x = NA, y = NA), cancelOutput = TRUE)
         
         
         tm_bubbles(col = input$var, 
                    size = input$var2, 
-                   palette = c(input$low, input$high),
-                   breaks = as.numeric(unlist(strsplit(input$breaks,","))),
+                   palette = c(blow(), bhigh()),
+                   breaks = as.numeric(unlist(strsplit(dbreaks(),","))),
                    popup.vars=c("name", input$var2, input$var),
                    popup.format = list(text.align = "left", format = "f", digits = 3),
                    colorNA = NULL, 
@@ -571,7 +710,7 @@ server <- function(input, output,session) {
         
         tm_bubbles(col = input$var, 
                    size = input$var2, 
-                   palette = c(input$low, input$high),
+                   palette = c(blow(), bhigh()),
                    style = input$style,
                    popup.vars=c( "name", input$var2, input$var),
                    popup.format = list(text.align = "left", format = "f", digits = 3),
@@ -587,13 +726,14 @@ server <- function(input, output,session) {
     } else {
       
       
-      if(input$scale == TRUE)
-      { req(input$breaks, cancelOutput = TRUE)
+      if(input$scale == TRUE){
+        req(input$breaks, cancelOutput = TRUE)
+       req(dbreaks() != list(x = NA, y = NA), cancelOutput = TRUE)
         
         
         tm_polygons(input$var, 
-                    palette = c(input$low, input$high),
-                    breaks = as.numeric(unlist(strsplit(input$breaks,","))),
+                    palette = c(blow(), bhigh()),
+                    breaks = as.numeric(unlist(strsplit(dbreaks(),","))),
                     popup.vars=c(input$var, "name"),
                     popup.format = list(text.align = "left", format = "f", digits = 3),
                     colorNA = NULL, 
@@ -604,7 +744,7 @@ server <- function(input, output,session) {
         
         tm_polygons(input$var, 
                     
-                    palette = c(input$low, input$high),
+                    palette = c(blow(), bhigh()),
                     style = input$style,
                     popup.vars=c(input$var, "name"),
                     popup.format = list(text.align = "left", format = "f", digits = 3),
@@ -637,16 +777,17 @@ server <- function(input, output,session) {
     
     content = function(file){
       
-      tmap_save(borders48 + tm_shape(input_data1(), projection = 2163) +
+      tmap_save(bmapper() + tm_shape(input_data1(), projection = 2163) +
                 tmapper() + 
                 tm_layout(
                     legend.position = c("RIGHT","BOTTOM"),
                     legend.outside = FALSE,
                     legend.title.size = .0001,
-                    legend.format = (big.num.abbr = NA),                    title = input$title,
+                    title = btitle(),
                     title.size = 3,
                     legend.text.size = 1.5,
-                    fontfamily = "serif"), 
+                    fontfamily = "serif",
+                    frame = FALSE), 
                 file, 
                 width = 16, 
                 height = 10.4)
