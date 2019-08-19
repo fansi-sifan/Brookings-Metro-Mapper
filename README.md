@@ -60,7 +60,7 @@ The first three "Step 1" subparts are mandatory in order to proceed (Steps 1A, 1
 
 1. **FIPS code column:** dataset must contain a column of county OR cbsa 5-digit FIPS codes *named "cbsa_code","geoid", or "stco_code"*
 2. **Tidy:** the unit of observation must be cbsa OR county *(1 row = 1 county OR 1 cbsa)*
-3. **Single geography level:** dataset must be entirely county-level or entirely cbsa-level, not a mixture (NO datasets where some rows as CBSAs and other rows as Counties)
+3. **Single geography level:** dataset must be entirely county-level or entirely cbsa-level, not a mixture (NO datasets where some rows are metro areas and other rows are counties)
 
 
 
@@ -69,7 +69,7 @@ The first three "Step 1" subparts are mandatory in order to proceed (Steps 1A, 1
 
 
 **Download the map!(Publication Ready!)** 
-This button generates and html of a publication-ready map that looks exactly as you have customized it in-app. 
+This button generates an html of a publication-ready map that looks exactly as you have customized it in-app. 
 
 * *Custom label options* (title, subtitle, notes, source, figure number) apply only to "Download Map (Publication Ready!)" and "Download the Code" products (except "legend title" which applies to all map downloads).
 

@@ -309,7 +309,7 @@ ui <- fluidPage(
       #h5("Note: Basemap will *not* show on downloaded maps. Custom labels will *only* show on on downloaded maps.")
     tags$head(tags$style(HTML('
                               /* labels */
-                              .label {
+                              .skin-blue .main-sidebar .sidebar .label {
                               color: #000000;
                               text-color: #000000;
           
@@ -332,29 +332,29 @@ ui <- fluidPage(
                               
                               /* main sidebar */
                               .skin-blue .main-sidebar {
-                              background-color: #133366;
+                              background-color: #000000;
                               text-color: #000000;
                               }
                               
                               /* active selected tab in the sidebarmenu */
                               .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
-                              background-color: #133366;
+                              background-color: #000000;
 
                               }
                               
                               /* other links in the sidebarmenu */
                               .skin-blue .main-sidebar .sidebar .sidebar-menu a{
-                              background-color: #133366;
+                              background-color: #000000;
                               color: #000000;
                               }
                               
                               /* other links in the sidebarmenu when hovered */
                               .skin-blue .main-sidebar .sidebar .sidebar-menu a:hover{
-                              background-color: #133366;
+                              background-color: #000000;
                               }
                               /* toggle button when hovered  */                    
                               .skin-blue .main-header .navbar .sidebar-toggle:hover{
-                              background-color: #133366;
+                              background-color: #000000;
                               }
 
                               ')))
@@ -362,7 +362,7 @@ ui <- fluidPage(
     
   ),
   
-  title = "Dashboard Test"
+  title = "Metro Mapper"
   
   
   ),
