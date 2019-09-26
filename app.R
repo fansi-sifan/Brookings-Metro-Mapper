@@ -52,12 +52,12 @@ st50 <- read_sf("shapefiles/states51_inset_ld.shp") %>%
 # borders50 <- tm_shape(st50, projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(frame = FALSE)
 # borders48 <- tm_shape(st48, projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(frame = FALSE)
 
-co_all <- read_csv("data/co_all.csv", col_types = cols(stco_code = col_character()))
-cbsa_all <- read_csv("data/cbsa_all.csv", col_types = cols(cbsa_code = col_character()))
-county_cbsa_st <- read_csv("data/county_cbsa_st.csv", col_types = cols(cbsa_code = col_character(), stco_code = col_character()))
+load("data/cbsa_all.rda")
+load("data/co_all.rda")
+load("data/county_cbsa_st.rda")
+load("data/list_all_cbsa.rda")
+load("data/list_all_co.rda")
 
-list_all_cbsa <- mget(load("data/list_all_cbsa.rda"))$list_all_cbsa
-list_all_co <- mget(load("data/list_all_co.rda"))$list_all_co
 
 basic_cbsa <- names(county_cbsa_st %>% dplyr::select(contains("cbsa_")) %>% unique())
 basic_co <- names(county_cbsa_st %>% dplyr::select(contains("co_"), "cbsa_code", "cbsa_name") %>% unique())
@@ -137,7 +137,7 @@ ui <- fluidPage(
             selectizeInput(
 
               "co_choose", "Filter by county",
-              choices = county_cbsa_st$co_name, multiple = TRUE
+              choices = county_cbsa_st$stco_name, multiple = TRUE
             )
           ),
 
@@ -209,13 +209,13 @@ ui <- fluidPage(
 
             tags$hr(),
 
-            h3("  4. Download Map & Code!"),
+            h3("  4. Download Map!"),
 
             checkboxInput("export", "I'm Ready to Download!", FALSE),
 
             conditionalPanel(
               condition = "input.export == true",
-              radioButtons("filetype", "File type:", choices = c("png", "pdf", "html")),
+              radioButtons("filetype", "File type:", choices = c("png", "pdf")),
               # textInput("legen", label = "Legend title"),
               textInput("title", label = "Map title"),
               downloadButton("plot", label = "Download the map!")
@@ -414,7 +414,7 @@ server <- function(input, output, session) {
         (if (input$custom == FALSE) {
           co_codes <- county_cbsa_st$stco_code
         } else {
-          co_codes <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$stco_code)
+          co_codes <- (filter(county_cbsa_st, st_name %in% input$states | stco_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$stco_code)
         })
       } else {
         (if (input$custom == FALSE) {
@@ -450,6 +450,7 @@ server <- function(input, output, session) {
         cbsa_all %>%
           filter(cbsa_code %in% cbsa_codes) %>%
           dplyr::select(cbsa_columns) %>%
+          filter_all(all_vars(!is.na(.)))%>%
           unique() %>%
           left_join(county_cbsa_st %>% dplyr::select(contains("cbsa_")) %>% unique(), by = "cbsa_code") %>%
           mutate_if(is.numeric, ~ round(., 2)) %>%
@@ -462,7 +463,7 @@ server <- function(input, output, session) {
         (if (input$custom == FALSE) {
           co_codes <- county_cbsa_st$stco_code
         } else {
-          co_codes <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$stco_code)
+          co_codes <- (filter(county_cbsa_st, st_name %in% input$states | stco_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$stco_code)
         })
 
         co_columns <- unlist(list_all_co[input$wharehouse], use.names = F)
@@ -521,7 +522,7 @@ server <- function(input, output, session) {
       (if (input$custom == FALSE) {
         st_names <- county_cbsa_st$st_name
       } else {
-        st_names <- (filter(county_cbsa_st, st_name %in% input$states | co_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$st_name)
+        st_names <- (filter(county_cbsa_st, st_name %in% input$states | stco_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$st_name)
       })
     } else {
       (if (input$custom == FALSE) {
@@ -544,7 +545,8 @@ server <- function(input, output, session) {
 
 
   the_map <- reactive({
-   fborders() + tm_shape(input_data1(), projection = 2163) + tmapper() + tm_layout(
+   fborders() + tm_basemap(NULL)+
+      tm_shape(input_data1(), projection = 2163) + tmapper() + tm_layout(
       legend.position = c("LEFT", "BOTTOM"),
       legend.outside = FALSE,
       legend.title.size = .0001,
