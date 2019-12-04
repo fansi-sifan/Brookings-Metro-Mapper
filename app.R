@@ -49,7 +49,7 @@ st50 <- read_sf("shapefiles/states51_inset_ld.shp") %>%
 # cbsa48 <- filter(cbsa50, !grepl(", HI|, AK", name))
 # st48 <- filter(st50, !grepl("Alaska|Hawaii", NAME))
 # 
-# borders50 <- tm_shape(st50, projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(frame = FALSE)
+# st_borders50 <- tm_shape(st50, projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(frame = FALSE)
 # borders48 <- tm_shape(st48, projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(frame = FALSE)
 
 load("data/cbsa_all.rda")
@@ -177,9 +177,7 @@ ui <- fluidPage(
 
               radioButtons("bubbs", "Map resolution (Decrease for faster load)", choices = c("High" = "high", "Medium" = "medium", "Low (bubbles)" = "low")),
 
-              checkboxInput("bord", "Draw jurisdiction border lines", FALSE),
-
-              # checkboxInput("sbord", "Draw state border lines", FALSE),
+              checkboxInput("bord", "Draw jurisdiction border lines", TRUE),
 
               checkboxInput("scale", "Custom scale breaks", FALSE),
 
@@ -189,11 +187,11 @@ ui <- fluidPage(
                 textInput("breaks", "Enter scale breaks (separate by commas)", NULL)
               ),
 
-              conditionalPanel(
-                "input.scale == false",
-
-                radioButtons("style", "Scaling", choices = c("Continuous" = "cont", "Categorical" = "pretty"))
-              ),
+              # conditionalPanel(
+              #   "input.scale != true",
+              # 
+              #   radioButtons("style", "Scaling", choices = c("Continuous" = "cont", "Categorical" = "pretty"))
+              # ),
 
 
               colourInput("low", "Choose a color for low value", "#deebf7"),
@@ -486,15 +484,6 @@ server <- function(input, output, session) {
 
 
 
-
-
-
-
-
-
-
-
-
   info2 <- reactive({
     info1 <- info()
 
@@ -516,37 +505,43 @@ server <- function(input, output, session) {
 
 
 
-  fborders <- reactive({
-    req(input$var, cancelOutput = TRUE)
-    if (input$glevel == "county") {
-      (if (input$custom == FALSE) {
-        st_names <- county_cbsa_st$st_name
-      } else {
-        st_names <- (filter(county_cbsa_st, st_name %in% input$states | stco_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$st_name)
-      })
-    } else {
-      (if (input$custom == FALSE) {
-        st_names <- county_cbsa_st$st_name
-      } else {
-        st_names <- (filter(county_cbsa_st, st_name %in% input$states | cbsa_name %in% input$cbsa_choose)$st_name)
-      })
-    }
-
-    st_final <- st50
-
-    tm_shape(filter(st_final, NAME %in% st_names), projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(
-      legend.format = (big.num.abbr <- NA),
-      frame = FALSE
-    )
-  })
+  # fborders <- reactive({
+  #   req(input$var, cancelOutput = TRUE)
+  #   if (input$glevel == "county") {
+  #     (if (input$custom == FALSE) {
+  #       st_names <- county_cbsa_st$st_name
+  #     } else {
+  #       st_names <- (filter(county_cbsa_st, st_name %in% input$states | stco_name %in% input$co_choose | cbsa_name %in% input$cbsa_choose)$st_name)
+  #     })
+  #   } else {
+  #     (if (input$custom == FALSE) {
+  #       st_names <- county_cbsa_st$st_name
+  #     } else {
+  #       st_names <- (filter(county_cbsa_st, st_name %in% input$states | cbsa_name %in% input$cbsa_choose)$st_name)
+  #     })
+  #   }
+  # 
+  #   st_final <- st50
+  # 
+  #   tm_shape(filter(st_final, NAME %in% st_names), projection = 2163) + tm_borders(lwd = 0.5) + tm_layout(
+  #     legend.format = (big.num.abbr <- NA),
+  #     frame = FALSE
+  #   )
+  # })
 
 
 
 
 
   the_map <- reactive({
-   fborders() + tm_basemap(NULL)+
-      tm_shape(input_data1(), projection = 2163) + tmapper() + tm_layout(
+   # fborders() + 
+      tm_basemap(NULL)+
+      tm_shape(st50, projection = 2163) +
+      tm_borders(lwd = 0.5) + 
+      
+      tm_shape(input_data1(), projection = 2163) + 
+      # tm_borders(lwd = 0.5) + 
+      tmapper() + tm_layout(
       legend.position = c("LEFT", "BOTTOM"),
       legend.outside = FALSE,
       legend.title.size = .0001,
@@ -627,7 +622,6 @@ server <- function(input, output, session) {
         req(input$breaks, cancelOutput = TRUE)
         req(dbreaks() != list(x = NA, y = NA), cancelOutput = TRUE)
 
-
         tm_bubbles(
           col = input$var,
           size = input$var2,
@@ -643,7 +637,7 @@ server <- function(input, output, session) {
           col = input$var,
           size = input$var2,
           palette = c(blow(), bhigh()),
-          style = input$style,
+          # style = input$style,
           popup.vars = c("name", input$var2, input$var),
           popup.format = list(text.align = "left", format = "f", digits = 3),
           colorNA = NULL,
@@ -672,7 +666,7 @@ server <- function(input, output, session) {
       } else {
         tm_polygons(input$var,
           palette = c(blow(), bhigh()),
-          style = input$style,
+          # style = input$style,
           popup.vars = c(input$var, "name"),
           popup.format = list(text.align = "left", format = "f", digits = 3),
           colorNA = NULL,
@@ -695,20 +689,25 @@ server <- function(input, output, session) {
     },
 
     content = function(file) {
-      tmap_save(fborders() + tm_shape(input_data1(), projection = 2163) +
-        tmapper() +
-        tm_layout(
-          legend.position = c("RIGHT", "BOTTOM"),
-          legend.outside = FALSE,
-          legend.title.size = .0001,
-          title = btitle(),
-          title.size = 3,
-          legend.text.size = 1.5,
-          fontfamily = "serif",
-          frame = FALSE,
-          bg.color =
-            "transparent"
-        ),
+      tmap_save(
+        # fborders() + 
+        tm_shape(st50, projection = 2163) +
+          tm_borders(lwd = 1) + 
+          tm_shape(input_data1(), projection = 2163)+ 
+          # tm_borders(lwd = 0.5) +
+          tmapper()+
+          tm_layout(
+            legend.position = c("RIGHT", "BOTTOM"),
+            legend.outside = FALSE,
+            legend.title.size = .0001,
+            title = btitle(),
+            title.size = 3,
+            legend.text.size = 1.5,
+            fontfamily = "serif",
+            frame = FALSE,
+            bg.color =
+              "transparent"
+          ) ,
       file,
       width = 16,
       height = 10.4, bg = "transparent"
